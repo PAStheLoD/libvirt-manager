@@ -1,0 +1,30 @@
+#cloud-config
+hostname: __VM_NAME__ 
+
+ssh_authorized_keys:
+  - ssh-rsa AAAABCDEF /home/pas/.ssh/id_rsa
+  - ssh-rsa AAAABFGHz /home/pas/.ssh/id_rsa
+
+chpasswd:
+  list: |
+    ubuntu:RANDOM
+  expire: False
+
+logcfg: |
+ [loggers]
+ keys=root,cloudinit
+ [handlers]
+ keys=ch
+ [formatters]
+ keys=
+ [logger_root]
+ level=DEBUG
+ handlers=
+ [logger_cloudinit]
+ level=DEBUG
+ qualname=cloudinit
+ handlers=ch
+ [handler_ch]
+ class=StreamHandler
+ level=DEBUG
+ args=(sys.stderr,)
