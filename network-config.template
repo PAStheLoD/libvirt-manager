@@ -1,0 +1,12 @@
+version: 2
+ethernets:
+  ens3:
+    match:
+      macaddress: "__MAC_ADDRESS_int__"
+    addresses:
+      - __VM_IP_prefix__
+    gateway4: __default_GW__
+    nameservers:
+      addresses: [__your_DNS_recursive_resolver__, 8.8.8.8, 8.8.4.4]
+
+

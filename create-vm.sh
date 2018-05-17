@@ -13,6 +13,10 @@ LVM_VG=storage-hdd
 PUB_NET=no
 INT_NET=yes
 
+DNS_RESOLVER="1.1.1.1"
+DEFAULT_GW="192.168.1.1"
+VM_IP_PREFIX="192.168.1.11/24"
+
 SSH_KEY="$(ssh-add -L | head -n1)"
 
 #################### yo
@@ -43,6 +47,10 @@ virsh detach-interface --domain ${VM_NAME} --type network --config
 
 cp network-config.template network-config
 cp user-data.template user-data
+echo 'dsmode: local
+
+' > meta-data
+
 
 [[ "$PUB_NET" = yes ]] && {
     virsh attach-interface --domain ${VM_NAME} --type network --source PUB --model virtio --config
@@ -56,8 +64,14 @@ cp user-data.template user-data
     sed -i -r -e "s/__MAC_ADDRESS_int__/$MAC_int/g" ./network-config
 }
 
+
+
+sed -i -r -e "s,__VM_IP_prefix_,$VM_IP_PREFIX,g" ./network-config
+sed -i -r -e "s/__default_GW__/$DEFAULT_GW/g" ./network-config
+sed -i -r -e "s/__your_DNS_recursive_resolver__/$DNS_RESOLVER/g" ./network-config
+
 sed -i -r -e "s/__VM_NAME__/$VM_NAME/g" ./user-data
-sed -i -r -e "s/__your_ssh_key_too__/- $SSH_KEY/g" ./user-data
+sed -i -r -e "s|__your_ssh_key_too__|- $SSH_KEY|g" ./user-data
 
 genisoimage -input-charset utf-8 -output ./data-source.iso -volid cidata -joliet -rock user-data meta-data network-config
 
@@ -83,3 +97,6 @@ virsh start ${VM_NAME}
 
 rm lvm-vol.definition.xml
 rm network-config
+rm meta-data
+rm user-data
+
