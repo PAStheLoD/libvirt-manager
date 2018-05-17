@@ -4,9 +4,10 @@ set -e
 
 cd $(dirname $(readlink -f $0))
 
-VM_NAME="$1"
+VM_NAME=${VM_NAME:-}
 DS=/var/lib/uvtool/libvirt/images/${VM_NAME}-ds.iso
-DISK_SIZE=20 # gigabytes
+DISK_SIZE=${DISK_SIZE:-20} # gigabytes
+VM_RAM=${VM_RAM:-2048} # megabytes
 ISO_PATH=/opt/iso/bionic-server-cloudimg-amd64.img
 ISO_SOURCE=https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
 LVM_VG=storage-hdd
@@ -20,6 +21,9 @@ VM_IP_PREFIX="192.168.1.11/24"
 SSH_KEY="$(ssh-add -L | head -n1)"
 
 #################### yo
+
+[[ "$VM_NAME" = "" ]] && { echo "VM_NAME is empty :|"; exit 1 ; }
+
 
 uvt-kvm --help &>/dev/null || { echo "uvtool seems to be missing. install uvtool and uvtool-libvirt"; exit 1; }
 
@@ -39,7 +43,7 @@ current_size=$(echo "$LV" | grep -i size | awk '{ print $(NF-1) }')
   exit 1
 }
 
-uvt-kvm create --no-start --log-console-output --backing-image-file "$ISO_PATH" --disk $DISK_SIZE --memory 2048 --cpu 2 ${VM_NAME}
+uvt-kvm create --no-start --log-console-output --backing-image-file "$ISO_PATH" --disk $DISK_SIZE --memory $VM_RAM --cpu 2 ${VM_NAME}
 
 [[ $(virsh domiflist ${VM_NAME} | grep -c network) = 1 ]] || { echo "ERROR: no NIC created by uvtool? huh." ; exit 1 ; }
 
