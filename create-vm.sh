@@ -40,7 +40,7 @@ uvt-kvm create --no-start --log-console-output --backing-image-file "$ISO_PATH" 
 virsh detach-interface --domain ${VM_NAME} --type network --config
 
 cp network-config.template network-config
-
+cp user-data.template user-data
 
 [[ "$PUB_NET" = yes ]] && {
     virsh attach-interface --domain ${VM_NAME} --type network --source PUB --model virtio --config
@@ -53,6 +53,8 @@ cp network-config.template network-config
     MAC_int=$(virsh domiflist --domain ${VM_NAME} | grep INT | awk '{ print $5 }')
     sed -i -r -e "s/__MAC_ADDRESS_int__/$MAC_int/g" ./network-config
 }
+
+sed -i -r -e "s/__VM_NAME__/$VM_NAME/g" ./user-data
 
 genisoimage -input-charset utf-8 -output ./data-source.iso -volid cidata -joliet -rock user-data meta-data network-config
 
