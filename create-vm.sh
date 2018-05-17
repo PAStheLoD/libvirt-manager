@@ -13,6 +13,8 @@ LVM_VG=storage-hdd
 PUB_NET=no
 INT_NET=yes
 
+SSH_KEY="$(ssh-add -L | head -n1)"
+
 #################### yo
 
 uvt-kvm --help &>/dev/null || { echo "uvtool seems to be missing. install uvtool and uvtool-libvirt"; exit 1; }
@@ -55,6 +57,7 @@ cp user-data.template user-data
 }
 
 sed -i -r -e "s/__VM_NAME__/$VM_NAME/g" ./user-data
+sed -i -r -e "s/__your_ssh_key_too__/- $SSH_KEY/g" ./user-data
 
 genisoimage -input-charset utf-8 -output ./data-source.iso -volid cidata -joliet -rock user-data meta-data network-config
 
@@ -66,7 +69,7 @@ virsh vol-delete --pool uvtool ${VM_NAME}-ds.qcow
 virsh attach-disk --domain ${VM_NAME} --target vdb --source "$DS" --config
 
 virsh vol-create-as --pool $LVM_VG --name ${VM_NAME} --capacity ${DISK_SIZE}g --format raw --print-xml > lvm-vol.definition.xml
-virsh vol-create-from --pool $LVM_VG --file lvm-vol.definition.xml --vol ${VM_NAME}.qcow  --inputpool uvtool 
+virsh vol-create-from --pool $LVM_VG --file lvm-vol.definition.xml --vol ${VM_NAME}.qcow  --inputpool uvtool
 
 virsh vol-dumpxml --pool $LVM_VG ${VM_NAME}
 LVM_VOL_PATH=$(virsh vol-list --pool $LVM_VG | grep -P "\b${VM_NAME}\b" | awk '{print $2}')
