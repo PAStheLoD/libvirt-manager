@@ -2,8 +2,6 @@
 hostname: __VM_NAME__ 
 
 ssh_authorized_keys:
-  - ssh-rsa AAAABCDEF /home/pas/.ssh/id_rsa
-  - ssh-rsa AAAABFGHz /home/pas/.ssh/id_rsa
   __your_ssh_key_too__
 
 chpasswd:
