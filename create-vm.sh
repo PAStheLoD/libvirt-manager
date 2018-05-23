@@ -31,16 +31,18 @@ uvt-kvm --help &>/dev/null || { echo "uvtool seems to be missing. install uvtool
    mkdir -p $(dirname "$ISO_PATH")
    wget -q "$ISO_SOURCE" -O "$ISO_PATH"
 }
-LV=$(lvdisplay /dev/$LVM_VG/$VM_NAME --units g 2>/dev/null)
+
+LV=$(lvdisplay /dev/$LVM_VG/$VM_NAME --units g 2>/dev/null || :)
 
 [[ "$LV" = "" ]] && {
     lvcreate -L${DISK_SIZE}G -n $VM_NAME $LVM_VG
-}
+} || {
+    current_size=$(echo "$LV" | grep -i size | awk '{ print $(NF-1) }')
 
-current_size=$(echo "$LV" | grep -i size | awk '{ print $(NF-1) }')
-[[ "bad" = $(python -c 'from __future__ import print_function ; import sys; print("ok") if float(sys.argv[1]) == float(sys.argv[2]) else print("bad")' $current_size $DISK_SIZE) ]] && {
-  echo "ERROR: the requested VM disk size ($DISK_SIZE) is not equal to the size of the existing logical volume ($current_size)"
-  exit 1
+    [[ "bad" = $(python -c 'from __future__ import print_function ; import sys; print("ok") if float(sys.argv[1]) == float(sys.argv[2]) else print("bad")' "$current_size" "$DISK_SIZE") ]] && {
+        echo "ERROR: the requested VM disk size ($DISK_SIZE) is not equal to the size of the existing logical volume ($current_size)"
+        exit 1
+    }
 }
 
 uvt-kvm create --no-start --log-console-output --backing-image-file "$ISO_PATH" --disk $DISK_SIZE --memory $VM_RAM --cpu 2 ${VM_NAME}
