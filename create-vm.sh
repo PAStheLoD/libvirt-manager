@@ -23,7 +23,10 @@ SSH_KEY="$(ssh-add -L | head -n1)"
 
 #################### yo
 
+[[ "$SSH_KEY" = "" ]] && { echo "SSH_KEY empty"; exit 1; }
+
 [[ "$VM_NAME" = "" ]] && { echo "VM_NAME is empty :|"; exit 1 ; }
+
 
 
 function geniso() {
